@@ -1,0 +1,27 @@
+{
+  "name": "gatsby-plugin-source-each-git-commit",
+  "version": "1.0.0",
+  "description": "Make a node out of every commit in a git-repo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/coded-aesthetics/gatsby-plugin-source-each-git-commit.git"
+  },
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin"
+  ],
+  "author": "Jan Reinsch",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/coded-aesthetics/gatsby-plugin-source-each-git-commit/issues"
+  },
+  "homepage": "https://github.com/coded-aesthetics/gatsby-plugin-source-each-git-commit#readme",
+  "dependencies": {
+    "ncp": "^2.0.0",
+    "nodegit": "^0.26.3"
+  }
+}

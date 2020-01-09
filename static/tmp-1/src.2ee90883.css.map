@@ -1,0 +1,1 @@
+{"version":3,"sources":["styles.css"],"names":[],"mappings":"AAAA,KACE,sBACF,CAEA,KAEE,aACF,CAEA,eAJE,qBAOF,CAHA,UAEE,aACF","file":"src.2ee90883.css","sourceRoot":"..","sourcesContent":["body {\n  font-family: sans-serif;\n}\n\n#app {\n  border: 1px solid #ccc;\n  height: 1300px;\n}\n\n#mirrored {\n  border: 1px solid #ccc;\n  height: 1000px;\n}\n"]}
