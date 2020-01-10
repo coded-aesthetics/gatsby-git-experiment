@@ -1,1 +1,0 @@
-{"version":3,"sources":["styles.css"],"names":[],"mappings":"AAAA,KACE,sBACF,CAEA,KACE,qBAAsB,CACtB,yBACF","file":"src.e17eeccc.css","sourceRoot":"..","sourcesContent":["body {\n  font-family: sans-serif;\n}\n\n#app {\n  border: 1px solid #ccc;\n  height: calc(100vh - 20px);\n}\n"]}

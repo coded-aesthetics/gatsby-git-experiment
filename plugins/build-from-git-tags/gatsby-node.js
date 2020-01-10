@@ -2,7 +2,8 @@ var Git = require('nodegit')
 const util = require('util')
 const path = require('path')
 const exec = util.promisify(require('child_process').exec)
-const ncpPromise = util.promisify(require('ncp').ncp)
+const fs = require('fs-extra')
+require('colors');
 
 let repo
 let references = []
@@ -16,19 +17,19 @@ const sequentiallyRunPromises = (tasks) => {
           ).catch(reject)
       );
     }, Promise.resolve([])).then(arrayOfResults => {
-      console.log(arrayOfResults)
       resolve(arrayOfResults)
     }).catch(reject);
   })
 }
 
-const getCommits = async (repoUrl, rootFolder, buildCommands, outDir) => {
+const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
   // Clone a given repository into the `./tmp` folder.
   const repoPath = path.join('./.tmp', repoUrl)
+  await fs.emptyDir(repoPath)
   return Git.Clone(repoUrl, repoPath)
     .then(() => {
       // Open the repository directory.
-
+      console.log("cloning the repo".green, repoUrl, "into", repoPath)
       return (
         Git.Repository.open(repoPath)
           // Open the master branch.
@@ -37,7 +38,6 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, outDir) => {
           })
           .then(() => {
             return repo.getReferences().then(function (stdVectorGitReference) {
-              console.log(stdVectorGitReference)
               references = references.concat(
                 stdVectorGitReference.filter(x => x.isTag())
               )
@@ -48,26 +48,34 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, outDir) => {
     .then(async () => {
       const tasks = references.map((reference, idx) => {
         return () => repo.checkoutRef(reference).then(async () => {
+          console.log("checked out the ref".green, reference.name())
           const commandTasks = buildCommands.map((command) => {
             return async () => {
+              console.log('running build command'.green, command)
               var { stdout, stderr } = await exec('cd ' + repoPath + ' && ' + command)
-              console.log('stdout:', stdout)
-              console.log('stderr:', stderr)
+              if (stdout) {
+                console.log('build command output:'.green, stdout)
+              }
+              if (stderr) {
+                console.log('build command error output:'.red, stderr)
+              }
               return {stdout, stderr}
             }
           })
           await sequentiallyRunPromises(commandTasks)
-          /*
-          var { stdout, stderr } = await exec('cd ' + repoPath +  ' && NODE_ENV=development yarn install')
-          console.log('stdout:', stdout)
-          console.log('stderr:', stderr)
-          var { stdout, stderr } = await exec(repoPath + '/node_modules/.bin/parcel build ' + repoPath + '/index.html --out-dir ' + repoPath + '/public --public-url .')
-          console.log('stdout:', stdout)
-          console.log('stderr:', stderr)*/
-          // console.log('copying from', path.join(repoPath, 'public'), 'to', path.join(rootFolder, 'static/tmp-' + idx ))
-          // await ncpPromise(path.join(repoPath, 'public'), path.join(rootFolder, 'static/tmp-' + idx ))
-          await ncpPromise(path.join(repoPath, outDir), path.join(rootFolder, 'static/tmp-' + idx ))
-          return { path: 'tmp-' + idx }
+
+          const commit = await reference.peel(Git.Object.TYPE.COMMIT)
+
+          const gitBaseName = path.basename(repoUrl)
+
+          const fromPath = path.join(repoPath, buildDir)
+          const toPath = path.join(rootFolder, 'static/' + gitBaseName + '/' + reference.shorthand())
+
+          console.log('copying build output:'.green, "from", fromPath, "to", toPath)
+
+          await fs.ensureDir(toPath)
+          await fs.copy(fromPath, toPath)
+          return { path: toPath }
         })
       })
       return sequentiallyRunPromises(tasks)
@@ -85,12 +93,11 @@ getCommits('https://github.com/coded-aesthetics/paper-snowflakes.git').then(
 */
 
 exports.sourceNodes = async ({ actions }, configOptions) => {
-  console.log('sourceNodes', configOptions)
-  // Process data into nodes.
+  console.log('running the build-from-git-tags plugin'.green, configOptions)
 
-  return await getCommits(configOptions.repoUrl, configOptions.rootDir, configOptions.buildCommands || [], configOptions.outDir || '.').then(
+  return await getCommits(configOptions.repoUrl, configOptions.rootDir, configOptions.buildCommands || [], configOptions.buildDir || '.').then(
     (xs) => {
-      console.log(xs)
+
     }
   )
   //data.forEach(datum => createNode(processDatum(datum)))

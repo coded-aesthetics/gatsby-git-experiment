@@ -18,11 +18,19 @@ module.exports = {
       options: {
         rootDir: `${__dirname}/`,
         repoUrl: `https://github.com/coded-aesthetics/paper-snowflakes.git`,
-        outDir: `public`,
+        buildDir: `public`,
         buildCommands: [
+          'rm -rf ./public',
           'NODE_ENV=development yarn install',
           './node_modules/.bin/parcel build ./index.html --out-dir ./public --public-url .'
         ]
+      }
+    },
+    {
+      resolve: `build-from-git-tags`,
+      options: {
+        rootDir: `${__dirname}/`,
+        repoUrl: `https://github.com/coded-aesthetics/spirograph-3d.git`
       }
     }
   ]
