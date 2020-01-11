@@ -32,7 +32,29 @@ module.exports = {
         rootDir: `${__dirname}/`,
         repoUrl: `https://github.com/coded-aesthetics/spirograph-3d.git`
       }
-    }
+    },
+    {
+      resolve: `build-from-git-tags`,
+      options: {
+        rootDir: `${__dirname}/`,
+        repoUrl: `https://github.com/coded-aesthetics/planetary-eject.git`,
+        buildDir: `src`,
+      }
+    },
+    {
+      resolve: `build-from-git-tags`,
+      options: {
+        rootDir: `${__dirname}/`,
+        repoUrl: `https://github.com/coded-aesthetics/springy-things.git`
+      }
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `static`,
+        path: `${__dirname}/static/`,
+      },
+    },
   ]
   /* Your site config here */
 }

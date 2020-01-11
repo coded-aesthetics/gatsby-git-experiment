@@ -42,9 +42,14 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
             repo = repo_
           })
           .then(() => {
+            console.log('getting all references'.green)
             return repo.getReferences().then(function (stdVectorGitReference) {
               references = references.concat(
                 stdVectorGitReference.filter(x => x.isTag())
+              )
+              console.log(
+                'found tags'.green,
+                references.map(x => x.shorthand())
               )
             })
           })
@@ -57,11 +62,19 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
           rootFolder,
           'static/' + gitBaseName + '/' + reference.shorthand()
         )
-        return () =>
-          fs.existsSync(toPath)
-            ? Promise.resolve({ path: toPath })
-            : repo.checkoutRef(reference).then(async () => {
-              console.log('checked out the ref'.green, reference.name())
+        return () => {
+          if (fs.existsSync(toPath)) {
+            console.log(
+              'tag has already been processed'.green,
+              reference.name()
+            )
+            return Promise.resolve({
+              path: gitBaseName + '/' + reference.shorthand()
+            })
+          } else {
+            console.log('checking out the tag'.green, reference.name())
+            return repo.checkoutRef(reference).then(async () => {
+              console.log('checked out the tag'.green, reference.shorthand())
               const commandTasks = buildCommands.map(command => {
                 return async () => {
                   console.log('running build command'.green, command)
@@ -79,8 +92,6 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
               })
               await sequentiallyRunPromises(commandTasks)
 
-              const commit = await reference.peel(Git.Object.TYPE.COMMIT)
-
               const fromPath = path.join(repoPath, buildDir)
 
               console.log(
@@ -93,8 +104,10 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
 
               await fsExtra.ensureDir(toPath)
               await fsExtra.copy(fromPath, toPath)
-              return { path: toPath }
+              return { path: gitBaseName + '/' + reference.shorthand() }
             })
+          }
+        }
       })
       return sequentiallyRunPromises(tasks)
     })
