@@ -49,6 +49,39 @@ module.exports = {
       }
     },
     {
+      resolve: `build-from-git-tags`,
+      options: {
+        rootDir: `${__dirname}/`,
+        repoUrl: `https://github.com/coded-aesthetics/voronoi-wobble.git`
+      }
+    },
+    {
+      resolve: `build-from-git-tags`,
+      options: {
+        rootDir: `${__dirname}/`,
+        repoUrl: `https://github.com/coded-aesthetics/paper-gem.git`
+      }
+    },
+    {
+      resolve: `build-from-git-tags`,
+      options: {
+        rootDir: `${__dirname}/`,
+        repoUrl: `https://github.com/coded-aesthetics/breaking-rocks.git`
+      }
+    },
+    {
+      resolve: `build-from-git-tags`,
+      options: {
+        rootDir: `${__dirname}/`,
+        repoUrl: `https://github.com/coded-aesthetics/learn-rxjs.git`,
+        buildDir: `dist`,
+        buildCommands: [
+          'NODE_ENV=development npm install',
+          'ng build --deploy-url=${basePath}'
+        ]
+      }
+    },
+    {
       resolve: `gatsby-source-filesystem`,
       options: {
         name: `static`,

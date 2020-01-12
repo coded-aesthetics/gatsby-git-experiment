@@ -1,0 +1,11 @@
+.container {
+  display: flex;
+}
+
+.sidebar {
+  max-width: 400px;
+}
+
+.content {
+  min-width: calc(100% - 205px);
+}

@@ -63,13 +63,14 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
           'static/' + gitBaseName + '/' + reference.shorthand()
         )
         return () => {
+          const basePath = gitBaseName + '/' + reference.shorthand()
           if (fs.existsSync(toPath)) {
             console.log(
               'tag has already been processed'.green,
               reference.name()
             )
             return Promise.resolve({
-              path: gitBaseName + '/' + reference.shorthand()
+              path: basePath, tag: reference.shorthand()
             })
           } else {
             console.log('checking out the tag'.green, reference.name())
@@ -77,9 +78,10 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
               console.log('checked out the tag'.green, reference.shorthand())
               const commandTasks = buildCommands.map(command => {
                 return async () => {
-                  console.log('running build command'.green, command)
+                  const c = command.split('${basePath}').join('/' + basePath + '/')
+                  console.log('running build command'.green, c)
                   var { stdout, stderr } = await exec(
-                    'cd ' + repoPath + ' && ' + command
+                    'cd ' + repoPath + ' && ' + c
                   )
                   if (stdout) {
                     console.log('build command output:'.green, stdout)
@@ -103,8 +105,12 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
               )
 
               await fsExtra.ensureDir(toPath)
-              await fsExtra.copy(fromPath, toPath)
-              return { path: gitBaseName + '/' + reference.shorthand() }
+              await fsExtra.copy(fromPath, toPath, {
+                filter: function (path) {
+                  return path.indexOf('.git') > -1
+                }
+              })
+              return { path: basePath, tag: reference.shorthand() }
             })
           }
         }
@@ -124,7 +130,8 @@ getCommits('https://github.com/coded-aesthetics/paper-snowflakes.git').then(
 */
 
 exports.sourceNodes = async ({ actions }, configOptions) => {
-  console.log('running the build-from-git-tags plugin'.green)
+  // TODO: validate options
+  console.log('running the build-from-git-tags plugin'.green, configOptions.repoUrl)
 
   const { createNode } = actions
 
@@ -140,7 +147,6 @@ exports.sourceNodes = async ({ actions }, configOptions) => {
         id: x.path,
         internal: {
           type: 'PageBuiltFromGit',
-          mediaType: `text/html`,
           contentDigest: crypto
             .createHash(`md5`)
             .update(x.path)
@@ -148,6 +154,19 @@ exports.sourceNodes = async ({ actions }, configOptions) => {
         }
       })
     )
+    const gitBaseName = path.basename(configOptions.repoUrl)
+    createNode({
+      id: configOptions.repoUrl,
+      name: gitBaseName,
+      pages: xs,
+      internal: {
+        type: 'ProjectBuiltFromGit',
+        contentDigest: crypto
+          .createHash(`md5`)
+          .update(configOptions.repoUrl)
+          .digest(`hex`)
+      }
+    })
   })
   // data.forEach(datum => createNode(processDatum(datum)))
   // We're done, return.
