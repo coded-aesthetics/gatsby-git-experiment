@@ -31,7 +31,7 @@ const getCommits = async (repoUrl, rootFolder, buildCommands, buildDir) => {
   // Clone a given repository into the `./tmp` folder.
   const repoPath = path.join('./.tmp', repoUrl)
   await fsExtra.emptyDir(repoPath)
-  return Git.Clone(repoUrl, repoPath)
+  return Git.Clone(repoUrl, repoPath, { ignoreCertErrors: 1 })
     .then(() => {
       // Open the repository directory.
       console.log('cloning the repo'.green, repoUrl, 'into', repoPath)
@@ -168,6 +168,4 @@ exports.sourceNodes = async ({ actions }, configOptions) => {
       }
     })
   })
-  // data.forEach(datum => createNode(processDatum(datum)))
-  // We're done, return.
 }
